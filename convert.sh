@@ -28,13 +28,13 @@ echo "  enemy-big.png -> SRC/SPR_ENLG.H (grid 2x1)"
 bun tools/mksprite.ts --grid 2x1 assets/enemy-big.png SPR_ENLG > SRC/SPR_ENLG.H
 
 # 5. Out-of-scope assets (converted for future use, not used in GAME.CPP)
-echo "  laser-bolts.png -> SRC/SPR_LASER.H (grid 2x2)"
-bun tools/mksprite.ts --grid 2x2 assets/laser-bolts.png SPR_LASER > SRC/SPR_LASER.H
+echo "  laser-bolts.png -> SRC/SPR_LASR.H (grid 2x2)"
+bun tools/mksprite.ts --grid 2x2 assets/laser-bolts.png SPR_LASR > SRC/SPR_LASR.H
 
-echo "  explosion.png -> SRC/SPR_EXPLO.H (grid 5x1)"
-bun tools/mksprite.ts --grid 5x1 assets/explosion.png SPR_EXPLO > SRC/SPR_EXPLO.H
+echo "  explosion.png -> SRC/SPR_EXPL.H (grid 5x1)"
+bun tools/mksprite.ts --grid 5x1 assets/explosion.png SPR_EXPL > SRC/SPR_EXPL.H
 
-echo "  power-up.png -> SRC/SPR_PWRUP.H (grid 2x2)"
-bun tools/mksprite.ts --grid 2x2 assets/power-up.png SPR_PWRUP > SRC/SPR_PWRUP.H
+echo "  power-up.png -> SRC/SPR_PWUP.H (grid 2x2)"
+bun tools/mksprite.ts --grid 2x2 assets/power-up.png SPR_PWUP > SRC/SPR_PWUP.H
 
 echo "Done: 1 background + 7 sprite sheets."

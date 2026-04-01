@@ -11,4 +11,4 @@ EXE_FILE="${1:-GAME.EXE}"
   -c "C:" \
   -c "CALL AUTOEXEC.BAT" \
   -c "CD SRC" \
-  -c "$EXE_FILE"
+  -c "$EXE_FILE" 2>/dev/null

@@ -12,6 +12,7 @@ static volatile int _buf_head = 0;
 static volatile int _buf_tail = 0;
 
 static void (__interrupt __far *_old_int9)(void);
+static volatile int _extended = 0;
 
 static void __interrupt __far _key_handler(void) {
     unsigned char scancode = inp(0x60);
@@ -19,6 +20,14 @@ static void __interrupt __far _key_handler(void) {
     int next;
     outp(0x61, ack | 0x80);
     outp(0x61, ack);
+
+    if (scancode == 0xE0) {
+        _extended = 1;
+        outp(0x20, 0x20);
+        return;
+    }
+
+    _extended = 0;
 
     if (scancode & 0x80) {
         _keys[scancode & 0x7F] = 0;

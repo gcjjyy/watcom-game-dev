@@ -1,22 +1,25 @@
 #!/bin/bash
 # DOSBox build script for Watcom C++ game project
-# Usage: ./build.sh [source_file]
-#   e.g. ./build.sh GAME.CPP
+# Compiles all *.CPP files in SRC/ and links into GAME.EXE
 
 DOSBOX="/Applications/dosbox.app/Contents/MacOS/DOSBox"
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
-SRC_FILE="${1:-GAME.CPP}"
 
-# Remove old build log
+# Convert assets first
+"$PROJECT_DIR/convert.sh"
+
+# Wait if another DOSBox instance is already running
+while pgrep -x DOSBox > /dev/null 2>&1; do
+  echo "Another DOSBox instance is running. Waiting..."
+  sleep 5
+done
+
 rm -f "$PROJECT_DIR/BUILD.LOG"
 
 "$DOSBOX" \
   -c "MOUNT C $PROJECT_DIR" \
   -c "C:" \
-  -c "CALL AUTOEXEC.BAT" \
-  -c "CD SRC" \
-  -c "WCL386 $SRC_FILE -fe=GAME.EXE > C:\BUILD.LOG 2>&1" \
-  -c "EXIT"
+  -c "BUILD.BAT" 2>/dev/null
 
 echo "=== BUILD OUTPUT ==="
 if [ -f "$PROJECT_DIR/BUILD.LOG" ]; then

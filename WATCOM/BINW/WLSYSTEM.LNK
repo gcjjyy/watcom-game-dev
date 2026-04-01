@@ -1,0 +1,282 @@
+# example linker initialization file.
+system begin at_dos
+    libpath %WATCOM%\lib286
+    libpath %WATCOM%\lib286\dos
+    format dos ^
+end
+system begin n98_dos
+    sys at_dos ^
+    libpath %WATCOM%\lib286\dos\n98
+end
+system begin at_dos4g
+    option osname='DOS/4G'
+    libpath %WATCOM%\lib386
+    libpath %WATCOM%\lib386\dos
+    op stub=wstub.exe
+    format os2 le
+end
+system begin n98_dos4g
+    sys at_dos4g
+    libpath %WATCOM%\lib386\dos\n98
+end
+system begin at_dos4gnz
+    option osname='DOS/4G non-zero base'
+    libpath %WATCOM%\lib386
+    libpath %WATCOM%\lib386\dos
+    disable 123		# non-64k offset option OK here.
+    op internalrelocs
+    op togglerelocs
+    op stub=wstub.exe
+    format os2 lx
+end
+system begin n98_dos4gnz
+    sys at_dos4gnz
+    libpath %WATCOM%\lib386\dos\n98
+end
+system begin at_pharlap
+    libpath %WATCOM%\lib386
+    libpath %WATCOM%\lib386\dos
+    format phar ^
+end
+system begin n98_pharlap
+    sys at_pharlap ^
+    libpath %WATCOM%\lib386\dos\n98
+end
+system begin at_ergo
+    option osname='Ergo'
+    libpath %WATCOM%\lib386
+    libpath %WATCOM%\lib386\dos
+    format phar ^
+end
+system begin n98_ergo
+    sys at_ergo ^
+    libpath %WATCOM%\lib386\dos\n98
+end
+system begin at_x32r
+    option osname='FlashTek (register calling convention)'
+    libpath %WATCOM%\lib386
+    libpath %WATCOM%\lib386\dos
+    libfile cstrtx3r
+    option stack=4k,align=4k,internalrelocs
+    library x32b.lib
+    format os2 lx ^
+end
+system begin n98_x32r
+    sys at_x32r ^
+    libpath %WATCOM%\lib386\dos\n98
+end
+system begin at_x32rv
+    option osname='FlashTek Virtual Memory (register calling convention)'
+    libpath %WATCOM%\lib386
+    libpath %WATCOM%\lib386\dos
+    libfile cstrtx3r
+    option stack=4k,align=4k,internalrelocs
+    library x32vb.lib
+    format os2 lx ^
+end
+system begin n98_x32rv
+    sys at_x32rv ^
+    libpath %WATCOM%\lib386\dos\n98
+end
+system begin at_x32s
+    option osname='FlashTek (stack calling convention)'
+    libpath %WATCOM%\lib386
+    libpath %WATCOM%\lib386\dos
+    libfile cstrtx3s
+    option stack=4k,align=4k,internalrelocs
+    library x32b.lib
+    format os2 lx ^
+end
+system begin n98_x32s
+    sys at_x32s ^
+    libpath %WATCOM%\lib386\dos\n98
+end
+system begin at_x32sv
+    option osname='FlashTek Virtual Memory (stack calling convention)'
+    libpath %WATCOM%\lib386
+    libpath %WATCOM%\lib386\dos
+    libfile cstrtx3s
+    option stack=4k,align=4k,internalrelocs
+    library x32vb.lib
+    format os2 lx ^
+end
+system begin n98_x32sv
+    sys at_x32sv ^
+    libpath %WATCOM%\lib386\dos\n98
+end
+system begin at_win386
+    option osname='Windows 32-bit'
+    libpath %WATCOM%\lib386
+    libpath %WATCOM%\lib386\win
+    format phar rex
+end
+system begin n98_win386
+    sys at_win386
+    libpath %WATCOM%\lib386\win\n98
+end
+system begin os2
+    option osname='OS/2 16-bit'
+    library os2.lib
+    libpath %WATCOM%\lib286
+    libpath %WATCOM%\lib286\os2
+    format os2 ^
+end
+system begin at_windows
+    option osname='Windows 16-bit'
+    libpath %WATCOM%\lib286
+    libpath %WATCOM%\lib286\win
+    library windows
+    option stack=8k, heapsize=1k
+    format windows ^
+end
+system begin n98_windows
+    sys at_windows ^
+    libpath %WATCOM%\lib286\win\n98
+end
+system begin at_windows_dll
+    option osname='Windows 16-bit'
+    libpath %WATCOM%\lib286
+    libpath %WATCOM%\lib286\win
+    library windows
+    option stack=8k, heapsize=1k
+    libfile libentry
+    format windows dll ^
+end
+system begin n98_windows_dll
+    sys at_windows_dll ^
+    libpath %WATCOM%\lib286\win\n98
+end
+system begin os2v2
+    option osname='OS/2 32-bit'
+    libpath %WATCOM%\lib386
+    libpath %WATCOM%\lib386\os2
+    format os2 lx ^
+end
+system begin os2v2_pm
+    option osname='OS/2 32-bit presentation manager'
+    libpath %WATCOM%\lib386
+    libpath %WATCOM%\lib386\os2
+    format os2 lx pm ^
+end
+system begin novell
+    option osname='Novell NLM'
+    format novell ^
+    libpath %WATCOM%\lib386
+    libpath %WATCOM%\lib386\netware
+    module clib
+    import @%WATCOM%\novi\clib.imp
+end
+system begin netware
+    option osname='Novell NLM'
+    format novell ^
+    libpath %WATCOM%\lib386
+    libpath %WATCOM%\lib386\netware
+    module clib
+    import @%WATCOM%\novi\clib.imp
+end
+system begin ads
+    option osname='AutoCAD Development System'
+    libpath %WATCOM%\lib386
+    libpath %WATCOM%\lib386\dos
+    libfile adsstart
+    format phar ext ^
+end
+system begin eadi
+    option osname='emulation AutoCAD Device Interface'
+    libpath %WATCOM%\lib386
+    libpath %WATCOM%\lib386\dos
+    libfile adiestrt
+    format phar ext ^
+end
+system begin fadi
+    option osname='floating point AutoCAD Device Interface'
+    libpath %WATCOM%\lib386
+    libpath %WATCOM%\lib386\dos
+    libfile adifstrt
+    format phar ext ^
+end
+system begin at_com
+    option osname='DOS .COM'
+    libpath %WATCOM%\lib286
+    libpath %WATCOM%\lib286\dos
+    libfile cstart_t
+    format dos com
+end
+system begin n98_com
+    sys at_com
+    libpath %WATCOM%\lib286\dos\n98
+end
+system begin codebuilder
+    option osname='Codebuilder'
+    libpath %WATCOM%\lib386
+    libpath %WATCOM%\lib386\dos
+    format phar rex
+end
+system begin qnx
+    option osname='QNX 16-bit'
+    libpath %WATCOM%\lib286
+    libpath %WATCOM%\lib286\qnx
+    format qnx
+end
+system begin qnx386
+    option osname='QNX 32-bit'
+    libpath %WATCOM%\lib386
+    libpath %WATCOM%\lib386\qnx
+    format qnx ^
+end
+system begin penpoint
+    option osname=Penpoint
+    libpath %PENPOINT_PATH%\sdk\lib
+    format os2 le ^
+end
+system begin nt
+    option osname='Windows NT character-mode'
+    libpath %WATCOM%\lib386
+    libpath %WATCOM%\lib386\nt
+    format windows nt ^
+    runtime console
+end
+system begin at_tnt
+    option osname='Phar Lap TNT dos style'
+    libpath %WATCOM%\lib386
+    libpath %WATCOM%\lib386\dos
+    format windows nt tnt ^
+    runtime dosstyle
+end
+system begin n98_tnt
+    sys at_tnt ^
+    libpath %WATCOM%\lib386\dos\n98
+end
+system begin nt_win
+    option osname='Windows NT windowed'
+    libpath %WATCOM%\lib386
+    libpath %WATCOM%\lib386\nt
+    format windows nt ^
+end
+system begin nt_dll
+    option osname='Windows NT'
+    libpath %WATCOM%\lib386
+    libpath %WATCOM%\lib386\nt
+    format windows nt dll ^
+end
+system begin win95
+    option osname='Windows 95'
+    libpath %WATCOM%\lib386
+    libpath %WATCOM%\lib386\nt
+    format windows nt ^
+    runtime windows=4.0
+end
+system begin dos sys at_dos ^ end
+system begin dos4g sys at_dos4g end
+system begin dos4gnz sys at_dos4gnz end
+system begin pharlap sys at_pharlap ^ end
+system begin ergo sys at_ergo ^ end
+system begin x32r sys at_x32r ^ end
+system begin x32rv sys at_x32rv ^ end
+system begin x32s sys at_x32s ^ end
+system begin x32sv sys at_x32sv ^ end
+system begin win386 sys at_win386 end
+system begin windows sys at_windows ^ end
+system begin windows_dll sys at_windows_dll ^ end
+system begin com sys at_com end
+system begin tnt sys at_tnt ^ end

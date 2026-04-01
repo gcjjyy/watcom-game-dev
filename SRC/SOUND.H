@@ -15,12 +15,4 @@ void snd_play(void);
 void snd_stop(void);
 int  snd_playing(void);
 
-/* SFX IDs */
-#define SFX_EXPLOSION  0
-#define SFX_LASER      1
-#define SFX_CLICK      2
-#define SFX_COUNT      3
-
-void snd_sfx_play(int id);
-
 #endif

@@ -83,55 +83,6 @@ static volatile unsigned long _vgm_pos;
 static volatile int           _vgm_playing;
 static volatile long          _vgm_wait;   /* remaining VGM samples * 10 */
 
-/* ---- OPL2 channel/operator mapping ---- */
-
-static const unsigned char _op_table[9][2] = {
-    {0x00, 0x03}, {0x01, 0x04}, {0x02, 0x05},
-    {0x08, 0x0B}, {0x09, 0x0C}, {0x0A, 0x0D},
-    {0x10, 0x13}, {0x11, 0x14}, {0x12, 0x15}
-};
-
-/* ---- SFX instrument data (11 bytes each) ---- */
-
-static const unsigned char _sfx_explosion[11] = {
-    0x00, 0x00, 0x00, 0x00, 0xF0, 0xF0, 0x7B, 0x7B, 0x01, 0x00, 0x00
-};
-static const unsigned char _sfx_laser[11] = {
-    0x20, 0x21, 0x15, 0x00, 0xF0, 0xF0, 0x1F, 0x1F, 0x06, 0x01, 0x02
-};
-static const unsigned char _sfx_click[11] = {
-    0x01, 0x01, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00
-};
-
-static const unsigned char * const _sfx_inst[SFX_COUNT] = {
-    _sfx_explosion, _sfx_laser, _sfx_click
-};
-
-static const unsigned short _sfx_fnum[SFX_COUNT] = { 340, 647, 514 };
-static const unsigned char  _sfx_block[SFX_COUNT] = { 1, 5, 4 };
-
-static int _sfx_next_ch = 7;
-
-/* ---- VGM channel filter (protect SFX channels 7-8) ---- */
-
-static int _is_sfx_reg(unsigned char reg) {
-    unsigned char off;
-    /* per-channel registers: 0xA0+ch, 0xB0+ch, 0xC0+ch */
-    if (reg == 0xA7 || reg == 0xA8) return 1;
-    if (reg == 0xB7 || reg == 0xB8) return 1;
-    if (reg == 0xC7 || reg == 0xC8) return 1;
-    /* per-operator registers: bases 0x20, 0x40, 0x60, 0x80, 0xE0 */
-    if (reg >= 0x20 && reg <= 0x35) off = reg - 0x20;
-    else if (reg >= 0x40 && reg <= 0x55) off = reg - 0x40;
-    else if (reg >= 0x60 && reg <= 0x75) off = reg - 0x60;
-    else if (reg >= 0x80 && reg <= 0x95) off = reg - 0x80;
-    else if (reg >= 0xE0 && reg <= 0xF5) off = reg - 0xE0;
-    else return 0;
-    /* ch7 ops: 0x11, 0x14; ch8 ops: 0x12, 0x15 */
-    if (off == 0x11 || off == 0x14 || off == 0x12 || off == 0x15) return 1;
-    return 0;
-}
-
 /* ---- hook into existing timer ISR ---- */
 
 static void (__interrupt __far *_old_int8)(void);
@@ -177,9 +128,7 @@ static void _vgm_process(void) {
     while (_vgm_pos < _vgm_size) {
         cmd = _vgm_data[_vgm_pos++];
         if (cmd == 0x5A || cmd == 0x5B || cmd == 0x5C) {
-            if (!_is_sfx_reg(_vgm_data[_vgm_pos])) {
-                opl2_write(_vgm_data[_vgm_pos], _vgm_data[_vgm_pos + 1]);
-            }
+            opl2_write(_vgm_data[_vgm_pos], _vgm_data[_vgm_pos + 1]);
             _vgm_pos += 2;
         } else if (cmd == 0x61) {
             _vgm_wait = ((long)_vgm_data[_vgm_pos]
@@ -249,37 +198,4 @@ void snd_stop(void) {
 
 int snd_playing(void) {
     return _vgm_playing;
-}
-
-/* ---- SFX playback ---- */
-
-void snd_sfx_play(int id) {
-    int ch;
-    unsigned char m, c;
-    const unsigned char *inst;
-
-    if (id < 0 || id >= SFX_COUNT) return;
-
-    ch = _sfx_next_ch;
-    _sfx_next_ch = (ch == 8) ? 7 : 8;
-
-    inst = _sfx_inst[id];
-    m = _op_table[ch][0];
-    c = _op_table[ch][1];
-
-    opl2_write(0xB0 + ch, 0x00);          /* key-off */
-    opl2_write(0x20 + m, inst[0]);         /* mod characteristics */
-    opl2_write(0x20 + c, inst[1]);         /* car characteristics */
-    opl2_write(0x40 + m, inst[2]);         /* mod level */
-    opl2_write(0x40 + c, inst[3]);         /* car level */
-    opl2_write(0x60 + m, inst[4]);         /* mod attack/decay */
-    opl2_write(0x60 + c, inst[5]);         /* car attack/decay */
-    opl2_write(0x80 + m, inst[6]);         /* mod sustain/release */
-    opl2_write(0x80 + c, inst[7]);         /* car sustain/release */
-    opl2_write(0xC0 + ch, inst[8]);        /* feedback/connection */
-    opl2_write(0xE0 + m, inst[9]);         /* mod waveform */
-    opl2_write(0xE0 + c, inst[10]);        /* car waveform */
-    opl2_write(0xA0 + ch, _sfx_fnum[id] & 0xFF);
-    opl2_write(0xB0 + ch, 0x20 | ((_sfx_block[id] & 0x07) << 2)
-                         | ((_sfx_fnum[id] >> 8) & 0x03));
 }

@@ -229,7 +229,6 @@ static void fire_bullet(void) {
             bullets[i].anim_accum = 0;
             bullets[i].move_frac = 0;
             bullets[i].active = 1;
-            snd_sfx_play(SFX_LASER);
             return;
         }
     }
@@ -368,7 +367,6 @@ static void check_collisions(void) {
                 enemies[j].active = 0;
                 spawn_explosion(ex1 + enemies[j].w / 2,
                                 ey1 + enemies[j].h / 2);
-                snd_sfx_play(SFX_EXPLOSION);
                 /* Respawn enemy at top */
                 enemies[j].y = -(enemies[j].h);
                 enemies[j].move_frac = 0;

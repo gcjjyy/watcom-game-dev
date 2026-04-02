@@ -3,14 +3,16 @@
 #include "INPUT.H"
 #include "TIMER.H"
 #include "SOUND.H"
+#include "SPRITE.H"
 #include "PALETTE.H"
 #include "BG_DSRT.H"
-#include "SPR_SHIP.H"
-#include "SPR_ENSM.H"
-#include "SPR_ENMD.H"
-#include "SPR_ENLG.H"
-#include "SPR_LASR.H"
-#include "SPR_EXPL.H"
+
+static Sprite spr_ship;
+static Sprite spr_ensm;
+static Sprite spr_enmd;
+static Sprite spr_enlg;
+static Sprite spr_lasr;
+static Sprite spr_expl;
 
 #define BG_X          32    /* (320 - 256) / 2, center 256px bg on 320px screen */
 #define SCROLL_SPEED  30    /* background scroll pixels per second */
@@ -86,21 +88,21 @@ static void update_ship(unsigned long dt) {
     /* Clamp to screen bounds */
     if (ship_x < 0) ship_x = 0;
     if (ship_y < 0) ship_y = 0;
-    if (ship_x + SPR_SHIP_W > GFX_W) ship_x = GFX_W - SPR_SHIP_W;
-    if (ship_y + SPR_SHIP_H > GFX_H) ship_y = GFX_H - SPR_SHIP_H;
+    if (ship_x + spr_ship.w > GFX_W) ship_x = GFX_W - spr_ship.w;
+    if (ship_y + spr_ship.h > GFX_H) ship_y = GFX_H - spr_ship.h;
 
     /* Timer-driven animation */
     ship_anim_accum += (long)dt;
     while (ship_anim_accum >= SHIP_ANIM_MS) {
         ship_anim_accum -= SHIP_ANIM_MS;
-        ship_frame = (ship_frame + 1) % SPR_SHIP_FRAMES;
+        ship_frame = (ship_frame + 1) % spr_ship.num_frames;
     }
 }
 
 static void draw_ship(void) {
     if (ship_x >= 0 && ship_y >= 0 &&
-        ship_x + SPR_SHIP_W <= GFX_W && ship_y + SPR_SHIP_H <= GFX_H) {
-        gfx_draw_csprite(spr_ship_frames[ship_frame], ship_x, ship_y);
+        ship_x + spr_ship.w <= GFX_W && ship_y + spr_ship.h <= GFX_H) {
+        gfx_draw_csprite(spr_ship.frames[ship_frame], ship_x, ship_y);
     }
 }
 
@@ -125,10 +127,10 @@ static void init_enemies(void) {
     enemies[0].active = 1;
     enemies[0].x = 60;
     enemies[0].y = 20;
-    enemies[0].w = SPR_ENSM_W;
-    enemies[0].h = SPR_ENSM_H;
-    enemies[0].frames = spr_ensm_frames;
-    enemies[0].num_frames = SPR_ENSM_FRAMES;
+    enemies[0].w = spr_ensm.w;
+    enemies[0].h = spr_ensm.h;
+    enemies[0].frames = spr_ensm.frames;
+    enemies[0].num_frames = spr_ensm.num_frames;
     enemies[0].speed = 40;
     enemies[0].frame = 0;
     enemies[0].anim_accum = 0;
@@ -138,10 +140,10 @@ static void init_enemies(void) {
     enemies[1].active = 1;
     enemies[1].x = 150;
     enemies[1].y = 40;
-    enemies[1].w = SPR_ENMD_W;
-    enemies[1].h = SPR_ENMD_H;
-    enemies[1].frames = spr_enmd_frames;
-    enemies[1].num_frames = SPR_ENMD_FRAMES;
+    enemies[1].w = spr_enmd.w;
+    enemies[1].h = spr_enmd.h;
+    enemies[1].frames = spr_enmd.frames;
+    enemies[1].num_frames = spr_enmd.num_frames;
     enemies[1].speed = 30;
     enemies[1].frame = 0;
     enemies[1].anim_accum = 0;
@@ -151,10 +153,10 @@ static void init_enemies(void) {
     enemies[2].active = 1;
     enemies[2].x = 230;
     enemies[2].y = 10;
-    enemies[2].w = SPR_ENLG_W;
-    enemies[2].h = SPR_ENLG_H;
-    enemies[2].frames = spr_enlg_frames;
-    enemies[2].num_frames = SPR_ENLG_FRAMES;
+    enemies[2].w = spr_enlg.w;
+    enemies[2].h = spr_enlg.h;
+    enemies[2].frames = spr_enlg.frames;
+    enemies[2].num_frames = spr_enlg.num_frames;
     enemies[2].speed = 20;
     enemies[2].frame = 0;
     enemies[2].anim_accum = 0;
@@ -223,8 +225,8 @@ static void fire_bullet(void) {
     int i;
     for (i = 0; i < MAX_BULLETS; i++) {
         if (!bullets[i].active) {
-            bullets[i].x = ship_x + (SPR_SHIP_W - SPR_LASR_W) / 2;
-            bullets[i].y = ship_y - SPR_LASR_H;
+            bullets[i].x = ship_x + (spr_ship.w - spr_lasr.w) / 2;
+            bullets[i].y = ship_y - spr_lasr.h;
             bullets[i].frame = 0;
             bullets[i].anim_accum = 0;
             bullets[i].move_frac = 0;
@@ -254,7 +256,7 @@ static void update_bullets(unsigned long dt) {
         bullets[i].move_frac = (int)(total % 1000);
 
         /* Deactivate if off-screen top */
-        if (bullets[i].y + SPR_LASR_H < 0) {
+        if (bullets[i].y + spr_lasr.h < 0) {
             bullets[i].active = 0;
             continue;
         }
@@ -263,7 +265,7 @@ static void update_bullets(unsigned long dt) {
         bullets[i].anim_accum += (long)dt;
         while (bullets[i].anim_accum >= BULLET_ANIM_MS) {
             bullets[i].anim_accum -= BULLET_ANIM_MS;
-            bullets[i].frame = (bullets[i].frame + 1) % SPR_LASR_FRAMES;
+            bullets[i].frame = (bullets[i].frame + 1) % spr_lasr.num_frames;
         }
     }
 }
@@ -273,9 +275,9 @@ static void draw_bullets(void) {
     for (i = 0; i < MAX_BULLETS; i++) {
         if (!bullets[i].active) continue;
         if (bullets[i].x >= 0 && bullets[i].y >= 0 &&
-            bullets[i].x + SPR_LASR_W <= GFX_W &&
-            bullets[i].y + SPR_LASR_H <= GFX_H) {
-            gfx_draw_csprite(spr_lasr_frames[bullets[i].frame],
+            bullets[i].x + spr_lasr.w <= GFX_W &&
+            bullets[i].y + spr_lasr.h <= GFX_H) {
+            gfx_draw_csprite(spr_lasr.frames[bullets[i].frame],
                              bullets[i].x, bullets[i].y);
         }
     }
@@ -301,8 +303,8 @@ static void spawn_explosion(int cx, int cy) {
     int i;
     for (i = 0; i < MAX_EXPLOSIONS; i++) {
         if (!explosions[i].active) {
-            explosions[i].x = cx - SPR_EXPL_W / 2;
-            explosions[i].y = cy - SPR_EXPL_H / 2;
+            explosions[i].x = cx - spr_expl.w / 2;
+            explosions[i].y = cy - spr_expl.h / 2;
             explosions[i].frame = 0;
             explosions[i].anim_accum = 0;
             explosions[i].active = 1;
@@ -319,7 +321,7 @@ static void update_explosions(unsigned long dt) {
         while (explosions[i].anim_accum >= EXPLO_ANIM_MS) {
             explosions[i].anim_accum -= EXPLO_ANIM_MS;
             explosions[i].frame++;
-            if (explosions[i].frame >= SPR_EXPL_FRAMES) {
+            if (explosions[i].frame >= spr_expl.num_frames) {
                 explosions[i].active = 0;
                 break;
             }
@@ -332,9 +334,9 @@ static void draw_explosions(void) {
     for (i = 0; i < MAX_EXPLOSIONS; i++) {
         if (!explosions[i].active) continue;
         if (explosions[i].x >= 0 && explosions[i].y >= 0 &&
-            explosions[i].x + SPR_EXPL_W <= GFX_W &&
-            explosions[i].y + SPR_EXPL_H <= GFX_H) {
-            gfx_draw_csprite(spr_expl_frames[explosions[i].frame],
+            explosions[i].x + spr_expl.w <= GFX_W &&
+            explosions[i].y + spr_expl.h <= GFX_H) {
+            gfx_draw_csprite(spr_expl.frames[explosions[i].frame],
                              explosions[i].x, explosions[i].y);
         }
     }
@@ -351,8 +353,8 @@ static void check_collisions(void) {
         if (!bullets[i].active) continue;
         bx1 = bullets[i].x;
         by1 = bullets[i].y;
-        bx2 = bx1 + SPR_LASR_W;
-        by2 = by1 + SPR_LASR_H;
+        bx2 = bx1 + spr_lasr.w;
+        by2 = by1 + spr_lasr.h;
 
         for (j = 0; j < MAX_ENEMIES; j++) {
             if (!enemies[j].active) continue;
@@ -384,6 +386,12 @@ int main(void) {
 
     gfx_init();
     gfx_set_palette_all(game_palette);
+    spr_load("SPR_SHIP.SPR", &spr_ship);
+    spr_load("SPR_ENSM.SPR", &spr_ensm);
+    spr_load("SPR_ENMD.SPR", &spr_enmd);
+    spr_load("SPR_ENLG.SPR", &spr_enlg);
+    spr_load("SPR_LASR.SPR", &spr_lasr);
+    spr_load("SPR_EXPL.SPR", &spr_expl);
     timer_init();
     input_init();
     snd_init();
@@ -394,8 +402,8 @@ int main(void) {
     }
 
     /* Init game state */
-    ship_x = (GFX_W - SPR_SHIP_W) / 2;
-    ship_y = GFX_H - SPR_SHIP_H - 16;
+    ship_x = (GFX_W - spr_ship.w) / 2;
+    ship_y = GFX_H - spr_ship.h - 16;
     ship_frame = 0;
     ship_anim_accum = 0;
     ship_move_frac_x = 0;
@@ -440,6 +448,12 @@ int main(void) {
     snd_close();
     input_close();
     timer_close();
+    spr_free(&spr_ship);
+    spr_free(&spr_ensm);
+    spr_free(&spr_enmd);
+    spr_free(&spr_enlg);
+    spr_free(&spr_lasr);
+    spr_free(&spr_expl);
     gfx_close();
 
     return 0;

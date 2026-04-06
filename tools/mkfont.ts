@@ -47,10 +47,7 @@ function scanSourceChars(): Set<number> {
       const raw = m[1];
       let i = 0;
       while (i < raw.length) {
-        if (raw[i] === "\\") {
-          i += 2;
-          continue;
-        }
+        if (raw[i] === "\\") { i += 2; continue; }
         const cp = raw.codePointAt(i)!;
         if (cp >= 0x20 && cp <= 0x7e) chars.add(cp);
         else if (cp >= 0xac00 && cp <= 0xd7a3) chars.add(cp);

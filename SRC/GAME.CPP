@@ -4,6 +4,7 @@
 #include "TIMER.H"
 #include "SOUND.H"
 #include "SPRITE.H"
+#include "FONT.H"
 #include "PALETTE.H"
 #include "BG_DSRT.H"
 
@@ -400,6 +401,7 @@ int main(void) {
             snd_play();
         }
     }
+    font_init();
 
     /* Init game state */
     ship_x = (GFX_W - spr_ship.w) / 2;
@@ -440,11 +442,14 @@ int main(void) {
         draw_enemies();
         draw_explosions();
         draw_ship();
+        font_puts(4, 4, "Hello, World!", 15);
+        font_puts(4, 24, "한글 테스트", 15);
         gfx_vsync();
         gfx_flip();
     }
 
     /* Clean shutdown: restore ISRs (LIFO), then text mode */
+    font_close();
     snd_close();
     input_close();
     timer_close();

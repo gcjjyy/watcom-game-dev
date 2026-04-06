@@ -8,3 +8,6 @@ BUILD.LOG
 *.LNK
 *.RES
 _workspace/
+SRC/FONT.BIN
+SRC/ENG.FNT
+SRC/HAN.FNT

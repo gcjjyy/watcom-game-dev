@@ -38,3 +38,7 @@ echo "  power-up.png -> SRC/SPR_PWUP.SPR (grid 2x2)"
 bun tools/mksprite.ts --bin --grid 2x2 assets/power-up.png SPR_PWUP
 
 echo "Done: 1 background + 7 sprite sheets (.SPR binary)."
+
+# 6. Compiled font
+echo "Building compiled font..."
+bun tools/mkfont.ts

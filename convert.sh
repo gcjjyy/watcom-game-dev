@@ -1,6 +1,6 @@
 #!/bin/bash
 # Asset conversion pipeline
-# Converts museum PNG assets to compiled sprite and raw data headers
+# Converts RPG tileset and character PNGs to binary formats
 
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$PROJECT_DIR"
@@ -9,36 +9,26 @@ cd "$PROJECT_DIR"
 echo "Generating palette..."
 bun tools/mkpalette.ts
 
-# 2. Background (raw pixel data, not compiled sprite)
-echo "  desert.png -> SRC/BG_DSRT.H (raw)"
-bun tools/mksprite.ts --raw assets/desert.png BG_DSRT > SRC/BG_DSRT.H
+# 2. Generate RPG placeholder assets
+echo "Generating RPG assets..."
+bun tools/mkassets.ts
 
-# 3. Player ship (5 columns x 2 rows = 10 frames of 16x24)
-echo "  ship.png -> SRC/SPR_SHIP.SPR (grid 5x2)"
-bun tools/mksprite.ts --bin --grid 5x2 assets/ship.png SPR_SHIP
+# 3. Convert tileset PNG to .TIL binary
+echo "  tileset.png -> SRC/TILES.TIL"
+bun tools/mktile.ts assets/tileset.png SRC/TILES.TIL --tw 16 --th 16
 
-# 4. Enemies
-echo "  enemy-small.png -> SRC/SPR_ENSM.SPR (grid 2x1)"
-bun tools/mksprite.ts --bin --grid 2x1 assets/enemy-small.png SPR_ENSM
+# 4. Convert character sprites to .SPR binary
+echo "  hero.png -> SRC/SPR_HERO.SPR (grid 1x4)"
+bun tools/mksprite.ts --bin --grid 1x4 assets/hero.png SPR_HERO
 
-echo "  enemy-medium.png -> SRC/SPR_ENMD.SPR (grid 2x1)"
-bun tools/mksprite.ts --bin --grid 2x1 assets/enemy-medium.png SPR_ENMD
+echo "  npc.png -> SRC/SPR_NPC1.SPR (grid 1x4)"
+bun tools/mksprite.ts --bin --grid 1x4 assets/npc.png SPR_NPC1
 
-echo "  enemy-big.png -> SRC/SPR_ENLG.SPR (grid 2x1)"
-bun tools/mksprite.ts --bin --grid 2x1 assets/enemy-big.png SPR_ENLG
+echo "  enemy.png -> SRC/SPR_ENM1.SPR (grid 1x4)"
+bun tools/mksprite.ts --bin --grid 1x4 assets/enemy.png SPR_ENM1
 
-# 5. Additional sprites
-echo "  laser-bolts.png -> SRC/SPR_LASR.SPR (grid 2x2)"
-bun tools/mksprite.ts --bin --grid 2x2 assets/laser-bolts.png SPR_LASR
+echo "Done: 1 tileset + 3 character sprites."
 
-echo "  explosion.png -> SRC/SPR_EXPL.SPR (grid 5x1)"
-bun tools/mksprite.ts --bin --grid 5x1 assets/explosion.png SPR_EXPL
-
-echo "  power-up.png -> SRC/SPR_PWUP.SPR (grid 2x2)"
-bun tools/mksprite.ts --bin --grid 2x2 assets/power-up.png SPR_PWUP
-
-echo "Done: 1 background + 7 sprite sheets (.SPR binary)."
-
-# 6. Compiled font
+# 5. Compiled font
 echo "Building compiled font..."
 bun tools/mkfont.ts

@@ -2,7 +2,11 @@
 #include <conio.h>
 #include "GFX.H"
 
-static unsigned char _buf[GFX_SIZE];
+/* +320*16 bytes of safety padding: compiled sprites/fonts write at hardcoded
+ * offsets from a base pointer and can't bounds-check mid-call. The padding
+ * catches any overflow from the last screen row so it doesn't corrupt
+ * adjacent static memory (e.g. MAP.CPP's _tile_data). */
+static unsigned char _buf[GFX_SIZE + 320 * 16];
 
 /* ---- assembly helpers via #pragma aux ---- */
 

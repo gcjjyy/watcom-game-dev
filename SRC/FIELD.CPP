@@ -129,17 +129,16 @@ void field_draw(void) {
 
     p0 = party_get(0);
     if (p0) {
-        sprintf(buf, "HP:%d/%d MP:%d/%d STEP:%lu",
-                p0->hp, p0->max_hp, p0->mp, p0->max_mp,
-                (unsigned long)_step_count);
+        int on_return = (_player &&
+                         _player->tile_x == FMAP_RETURN_X &&
+                         _player->tile_y == FMAP_RETURN_Y);
+        sprintf(buf, "HP:%d/%d MP:%d/%d",
+                p0->hp, p0->max_hp, p0->mp, p0->max_mp);
         font_puts(4, 180, buf, 15);
-    }
-    font_puts(248, 180, "Plains", 10);
-
-    if (_player &&
-        _player->tile_x == FMAP_RETURN_X &&
-        _player->tile_y == FMAP_RETURN_Y) {
-        font_puts(4, 190, "SPACE: Return to Town", 56);
+        if (on_return)
+            font_puts(144, 180, "SPACE: Return", 56);
+        else
+            font_puts(248, 180, "Plains", 10);
     }
 
     dlg_draw();

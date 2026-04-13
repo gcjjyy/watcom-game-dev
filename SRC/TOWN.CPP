@@ -174,16 +174,14 @@ void town_draw(void) {
     gfx_hline(0, 319, 176, 8);
 
     if (_player) {
+        int on_trigger = (_player->tile_x == TMAP_TRIGGER_X &&
+                          _player->tile_y == TMAP_TRIGGER_Y);
         sprintf(buf, "HP:%d/%d", _player->hp, _player->max_hp);
         font_puts(4, 180, buf, 15);
-    }
-    font_puts(240, 180, "Village", 10);
-
-    /* trigger hint */
-    if (_player &&
-        _player->tile_x == TMAP_TRIGGER_X &&
-        _player->tile_y == TMAP_TRIGGER_Y) {
-        font_puts(4, 190, "SPACE: Enter Field", 56);
+        if (on_trigger)
+            font_puts(80, 180, "SPACE: Enter Field", 56);
+        else
+            font_puts(240, 180, "Village", 10);
     }
 
     /* dialogue overlay */

@@ -186,6 +186,9 @@ void font_puts(int x, int y, const char *str, unsigned char color) {
     unsigned long cp, color4;
     unsigned char *code;
 
+    /* clip: glyphs are 16px tall; rendering past screen corrupts adjacent memory */
+    if (y < 0 || y + FONT_ENG_H > GFX_H) return;
+
     color4 = (unsigned long)color;
     color4 |= color4 << 8;
     color4 |= color4 << 16;

@@ -10,7 +10,10 @@
 
 typedef struct {
     char name[9];
-    int hp, max_hp, atk, mov;
+    int hp, max_hp;
+    int mp, max_mp;
+    int atk, def, spd;
+    int mov;
     int tile_x, tile_y;
     int team, alive, done;
     int spr_idx;
@@ -28,5 +31,6 @@ int   unit_alive_count(int team);
 void  unit_reset_done(int team);
 void  unit_load_sprite(int idx, const char *filename);
 void  unit_free_sprites(void);
+Sprite *unit_get_sprite(int idx);
 
 #endif

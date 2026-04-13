@@ -3,7 +3,7 @@
 
 /* Town map: 30x20 tiles
  * Tile legend: 0=grass, 1=path, 2=water, 3=wall,
- *              4=building, 5=tree, 6=door, 7=trigger
+ *              4=building, 5=tree, 6=door, 7=trigger=field exit
  */
 
 #define TMAP_W 30

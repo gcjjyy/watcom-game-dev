@@ -53,7 +53,7 @@ static void _update_camera(void) {
 
 /* ---- init ---- */
 
-void town_init(void) {
+void town_init(int spawn_face_dir) {
     int i;
 
     unit_init_pool();
@@ -62,7 +62,7 @@ void town_init(void) {
     /* spawn player */
     _player = unit_spawn(TEAM_PLAYER, "Hero", 50, 10, 4,
                          TMAP_PLAYER_X, TMAP_PLAYER_Y, SPR_HERO);
-    if (_player) _player->spr_frame = 0; /* facing down */
+    if (_player) _player->spr_frame = spawn_face_dir; /* restored facing */
 
     /* spawn NPCs */
     for (i = 0; i < MAX_NPCS; i++) {
@@ -123,7 +123,7 @@ int town_update(void) {
         if (_player &&
             _player->tile_x == TMAP_TRIGGER_X &&
             _player->tile_y == TMAP_TRIGGER_Y) {
-            return TOWN_TRIGGER_BATTLE;
+            return TOWN_TRIGGER_FIELD;
         }
         _check_npc_interact();
         return TOWN_TRIGGER_NONE;
@@ -183,9 +183,13 @@ void town_draw(void) {
     if (_player &&
         _player->tile_x == TMAP_TRIGGER_X &&
         _player->tile_y == TMAP_TRIGGER_Y) {
-        font_puts(4, 190, "SPACE: Enter Battle", 56);
+        font_puts(4, 190, "SPACE: Enter Field", 56);
     }
 
     /* dialogue overlay */
     dlg_draw();
+}
+
+int town_player_face(void) {
+    return _player ? _player->spr_frame : 0;
 }

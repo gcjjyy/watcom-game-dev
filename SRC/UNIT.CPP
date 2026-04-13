@@ -53,6 +53,11 @@ void unit_free_sprites(void) {
     }
 }
 
+Sprite *unit_get_sprite(int idx) {
+    if (idx < 0 || idx >= MAX_SPR) return 0;
+    return &_spr[idx];
+}
+
 /* ---- drawing ---- */
 
 void unit_draw(Unit *u, int cam_x, int cam_y) {

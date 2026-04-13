@@ -24,8 +24,8 @@ bun tools/mksprite.ts --bin --grid 1x4 assets/hero.png SPR_HERO
 echo "  npc.png -> SRC/SPR_NPC1.SPR (grid 1x4)"
 bun tools/mksprite.ts --bin --grid 1x4 assets/npc.png SPR_NPC1
 
-echo "  enemy.png -> SRC/SPR_ENM1.SPR (grid 1x4)"
-bun tools/mksprite.ts --bin --grid 1x4 assets/enemy.png SPR_ENM1
+echo "  enemy.png -> SRC/SPR_ENM1.SPR (grid 1x1, 32x32 battle sprite)"
+bun tools/mksprite.ts --bin --grid 1x1 assets/enemy.png SPR_ENM1
 
 echo "Done: 1 tileset + 3 character sprites."
 

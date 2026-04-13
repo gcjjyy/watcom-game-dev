@@ -2,11 +2,11 @@
 /**
  * mkassets.ts - Generate placeholder RPG tileset and character sprite PNGs
  *
- * Creates simple but functional 16x16 pixel art for:
+ * Creates simple but functional pixel art for:
  * - tileset.png: 8-tile tileset (grass, path, water, wall, building, tree, door, trigger)
  * - hero.png: 16x16 character (1x4 grid: down, left, right, up)
  * - npc.png: 16x16 NPC character (1x4 grid)
- * - enemy.png: 16x16 enemy character (1x4 grid)
+ * - enemy.png: 32x32 front-view battle enemy (1x1, single frame for front-view command battle)
  */
 
 import { writeFileSync } from "fs";
@@ -237,7 +237,52 @@ const npc = makeCharacter(40, 160, 60, 220, 180, 140);
 writePNG("assets/npc.png", npc.w, npc.h, npc.rgba);
 console.error("Generated assets/npc.png (16x64, 4 frames)");
 
-// Enemy (red body, pale green skin - looks menacing)
-const enemy = makeCharacter(180, 40, 40, 160, 200, 160);
+// Enemy (32x32 front-view battle sprite, single frame)
+function makeBattleEnemy(): { w: number; h: number; rgba: Uint8Array } {
+  const w = 32, h = 32;
+  const rgba = new Uint8Array(w * h * 4); // transparent by default
+
+  // Slime-ish blob: rounded dome, darker outline
+  const cx = 16, cy = 20, rx = 13, ry = 10;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const dx = (x - cx) / rx;
+      const dy = (y - cy) / ry;
+      const d = dx * dx + dy * dy;
+      if (y < 4) continue;         // top clearance
+      if (y < cy - ry + 1) continue;
+      if (d <= 1.0) {
+        // body gradient: lighter near top (highlight)
+        const shade = (y - (cy - ry)) / (2 * ry);
+        const r = Math.floor(120 + (1 - shade) * 80);
+        const g = Math.floor(40  + (1 - shade) * 40);
+        const b = Math.floor(40  + (1 - shade) * 30);
+        setPixel(rgba, w, x, y, r, g, b);
+      }
+      if (d > 0.85 && d <= 1.0) {
+        // outline darker
+        setPixel(rgba, w, x, y, 60, 20, 20);
+      }
+    }
+  }
+  // Eyes (two white dots with black pupils)
+  setPixel(rgba, w, 12, 18, 240, 240, 240);
+  setPixel(rgba, w, 13, 18, 240, 240, 240);
+  setPixel(rgba, w, 19, 18, 240, 240, 240);
+  setPixel(rgba, w, 20, 18, 240, 240, 240);
+  setPixel(rgba, w, 12, 19, 20, 20, 20);
+  setPixel(rgba, w, 19, 19, 20, 20, 20);
+
+  // Mouth (small curve of dark pixels)
+  setPixel(rgba, w, 14, 23, 30, 10, 10);
+  setPixel(rgba, w, 15, 24, 30, 10, 10);
+  setPixel(rgba, w, 16, 24, 30, 10, 10);
+  setPixel(rgba, w, 17, 24, 30, 10, 10);
+  setPixel(rgba, w, 18, 23, 30, 10, 10);
+
+  return { w, h, rgba };
+}
+
+const enemy = makeBattleEnemy();
 writePNG("assets/enemy.png", enemy.w, enemy.h, enemy.rgba);
-console.error("Generated assets/enemy.png (16x64, 4 frames)");
+console.error("Generated assets/enemy.png (32x32, 1 frame)");

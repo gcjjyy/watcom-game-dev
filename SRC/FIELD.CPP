@@ -12,6 +12,7 @@
 #include "INPUT.H"
 #include "TIMER.H"
 #include "DIALOG.H"
+#include "SFX.H"
 
 #define MOVE_DELAY 150
 #define SPR_HERO   0
@@ -105,6 +106,7 @@ int field_update(void) {
         if (fmap_encounter[ny * FMAP_W + nx]) {
             if ((rand() & 0x0F) == 0) {
                 _last_group = rand() % ENCOUNTER_GROUP_COUNT;
+                sfx_play(SFX_ENC);
                 return FLD_TRIGGER_BATTLE;
             }
         }

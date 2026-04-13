@@ -32,3 +32,15 @@ echo "Done: 1 tileset + 3 character sprites."
 # 5. Compiled font
 echo "Building compiled font..."
 bun tools/mkfont.ts
+
+# 6. Convert SFX source OGGs to .SFX (22050 Hz 8-bit u8 mono PCM)
+SFX_SRC_DIR="${SFX_SRC_DIR:-/Users/gcjjyy/Documents/게임개발/fx_sounds}"
+echo "Converting SFX from $SFX_SRC_DIR ..."
+bun tools/mksfx.ts "$SFX_SRC_DIR/weapon-sound1.ogg"   SRC/SFX_ATK.SFX
+bun tools/mksfx.ts "$SFX_SRC_DIR/be-att-sound20.ogg"  SRC/SFX_HIT.SFX
+bun tools/mksfx.ts "$SFX_SRC_DIR/ui-sound-13.ogg"     SRC/SFX_SEL.SFX
+bun tools/mksfx.ts "$SFX_SRC_DIR/ui-sound3.ogg"       SRC/SFX_OK.SFX
+bun tools/mksfx.ts "$SFX_SRC_DIR/ui-sound9.ogg"       SRC/SFX_CAN.SFX
+bun tools/mksfx.ts "$SFX_SRC_DIR/etc-sound0014.ogg"   SRC/SFX_WIN.SFX
+bun tools/mksfx.ts "$SFX_SRC_DIR/etc-sound0038.ogg"   SRC/SFX_LOSE.SFX
+bun tools/mksfx.ts "$SFX_SRC_DIR/monster-sound8.ogg"  SRC/SFX_ENC.SFX

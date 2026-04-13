@@ -10,6 +10,7 @@
 #include "INPUT.H"
 #include "TIMER.H"
 #include "DIALOG.H"
+#include "SFX.H"
 
 /* battle states */
 #define BS_ENTRY         0
@@ -172,8 +173,10 @@ static void _layout_enemies(void) {
 
 static void _check_end(void) {
     if (_enemies_alive() == 0) {
+        sfx_play(SFX_WIN);
         _result = BTL_VICTORY; _state = BS_VICTORY; dlg_show("Victory!");
     } else if (party_alive_count() == 0) {
+        sfx_play(SFX_LOSE);
         _result = BTL_DEFEAT; _state = BS_DEFEAT;
         dlg_show("Your party has fallen...");
     }
@@ -240,6 +243,7 @@ static void _player_attack(int ts) {
     Party_Member *p = party_get(_active_party_idx);
     int dmg;
     if (!p || ts < 0) return;
+    sfx_play(SFX_ATK); sfx_play(SFX_HIT);
     dmg = calc_phys_dmg(p->atk, enemy_defs[_enemies[ts].def_id].def,
                         _enemies[ts].defending);
     _enemies[ts].hp -= dmg;
@@ -323,9 +327,10 @@ void battle_update(void) {
         _enter_next_actor(); break;
     case BS_CMD_SEL:
         key = input_read_key();
-        if (key == KEY_UP)   { if (--_menu_cur < 0) _menu_cur = 4; }
-        if (key == KEY_DOWN) { if (++_menu_cur > 4) _menu_cur = 0; }
+        if (key == KEY_UP)   { if (--_menu_cur < 0) _menu_cur = 4; sfx_play(SFX_SEL); }
+        if (key == KEY_DOWN) { if (++_menu_cur > 4) _menu_cur = 0; sfx_play(SFX_SEL); }
         if (key == KEY_SPACE || key == KEY_ENTER) {
+            sfx_play(SFX_OK);
             if (_menu_cur == 0) {
                 _target_cur = _first_alive_enemy();
                 if (_target_cur >= 0) _state = BS_TARGET_ENEMY;
@@ -347,7 +352,7 @@ void battle_update(void) {
     case BS_MAGIC_SEL: {
         int sidx;
         key = input_read_key();
-        if (key == KEY_ESC) { _state = BS_CMD_SEL; break; }
+        if (key == KEY_ESC) { sfx_play(SFX_CAN); _state = BS_CMD_SEL; break; }
         sidx = _char_skill_idx(_active_party_idx);
         if (sidx < 0) {
             sprintf(_log1, "No skills!"); _log2[0] = 0;
@@ -371,7 +376,7 @@ void battle_update(void) {
         break; }
     case BS_ITEM_SEL:
         key = input_read_key();
-        if (key == KEY_ESC) { _state = BS_CMD_SEL; break; }
+        if (key == KEY_ESC) { sfx_play(SFX_CAN); _state = BS_CMD_SEL; break; }
         if (key == KEY_UP)   { if (--_sub_cur < 0) _sub_cur = INV_TYPES - 1; }
         if (key == KEY_DOWN) { if (++_sub_cur >= INV_TYPES) _sub_cur = 0; }
         if (key == KEY_SPACE || key == KEY_ENTER) {
@@ -384,7 +389,7 @@ void battle_update(void) {
         break;
     case BS_TARGET_ENEMY:
         key = input_read_key();
-        if (key == KEY_ESC) { _state = BS_CMD_SEL; break; }
+        if (key == KEY_ESC) { sfx_play(SFX_CAN); _state = BS_CMD_SEL; break; }
         if (key == KEY_LEFT)  { int n = _cycle_enemy(_target_cur, -1); if (n >= 0) _target_cur = n; }
         if (key == KEY_RIGHT) { int n = _cycle_enemy(_target_cur,  1); if (n >= 0) _target_cur = n; }
         if (key == KEY_SPACE || key == KEY_ENTER) {
@@ -395,7 +400,7 @@ void battle_update(void) {
         break;
     case BS_TARGET_ALLY:
         key = input_read_key();
-        if (key == KEY_ESC) { _state = BS_CMD_SEL; break; }
+        if (key == KEY_ESC) { sfx_play(SFX_CAN); _state = BS_CMD_SEL; break; }
         if (key == KEY_UP)   { int n = _cycle_party(_target_cur, -1); if (n >= 0) _target_cur = n; }
         if (key == KEY_DOWN) { int n = _cycle_party(_target_cur,  1); if (n >= 0) _target_cur = n; }
         if (key == KEY_SPACE || key == KEY_ENTER) {
@@ -429,6 +434,7 @@ void battle_update(void) {
         sprintf(_log1, "%s attacks %s for %d!",
                 enemy_defs[e->def_id].name, p->name, dmg);
         sprintf(_log2, "%s HP: %d/%d", p->name, p->hp, p->max_hp);
+        sfx_play(SFX_ATK); sfx_play(SFX_HIT);
         _begin_fx(TARGET_PLAYER, tgt, dmg, COL_DMG_RED);
         break; }
     case BS_RUN_TRY:

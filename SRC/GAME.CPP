@@ -13,6 +13,7 @@
 #include "FIELD.H"
 #include "BATTLE.H"
 #include "PARTY.H"
+#include "SFX.H"
 
 #define STATE_TOWN   0
 #define STATE_FIELD  1
@@ -36,7 +37,10 @@ int main(void) {
     unit_load_sprite(1, "SPR_NPC1.SPR");
     unit_load_sprite(2, "SPR_ENM1.SPR");
 
-    /* ISR init order: timer -> input -> sound (CRITICAL, unchanged) */
+    /* ISR init order: timer -> input -> sound, then start VGM BEFORE sfx_init.
+     * sfx_init issues a DSP reset which on SB16 can silence the OPL2 voices;
+     * starting VGM first ensures the VGM ISR is already ticking OPL2 writes
+     * when the DSP reset happens, so the FM chip comes back to life quickly. */
     timer_init();
     input_init();
     snd_init();
@@ -45,8 +49,18 @@ int main(void) {
         if (snd_load("TEST.VGM") == SND_OK) snd_play();
     }
 
+    sfx_init();
+
     font_init();
     party_init();
+    sfx_load(SFX_ATK,  "SFX_ATK.SFX");
+    sfx_load(SFX_HIT,  "SFX_HIT.SFX");
+    sfx_load(SFX_SEL,  "SFX_SEL.SFX");
+    sfx_load(SFX_OK,   "SFX_OK.SFX");
+    sfx_load(SFX_CAN,  "SFX_CAN.SFX");
+    sfx_load(SFX_WIN,  "SFX_WIN.SFX");
+    sfx_load(SFX_LOSE, "SFX_LOSE.SFX");
+    sfx_load(SFX_ENC,  "SFX_ENC.SFX");
     srand((unsigned int)timer_ms());
 
     town_init(0);   /* default: facing south on first boot */
@@ -108,6 +122,7 @@ int main(void) {
 
     /* shutdown LIFO */
     font_close();
+    sfx_close();
     snd_close();
     input_close();
     timer_close();

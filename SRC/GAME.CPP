@@ -37,19 +37,21 @@ int main(void) {
     unit_load_sprite(1, "SPR_NPC1.SPR");
     unit_load_sprite(2, "SPR_ENM1.SPR");
 
-    /* ISR init order: timer -> input -> sound, then start VGM BEFORE sfx_init.
-     * sfx_init issues a DSP reset which on SB16 can silence the OPL2 voices;
-     * starting VGM first ensures the VGM ISR is already ticking OPL2 writes
-     * when the DSP reset happens, so the FM chip comes back to life quickly. */
+    /* ISR init order: timer -> input -> sound -> sfx.
+     * snd_detect() must be called BEFORE sfx_init() because the SB DSP reset
+     * inside sfx_init clobbers the OPL2 timer registers, which snd_detect
+     * uses as its probe — calling it after sfx_init returns a bogus 0 and
+     * snd_play() would be skipped. Cache the detection result up-front. */
+    int opl2_ready;
     timer_init();
     input_init();
     snd_init();
+    opl2_ready = snd_detect();
+    sfx_init();
 
-    if (snd_detect()) {
+    if (opl2_ready) {
         if (snd_load("TEST.VGM") == SND_OK) snd_play();
     }
-
-    sfx_init();
 
     font_init();
     party_init();

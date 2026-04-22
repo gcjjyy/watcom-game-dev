@@ -1,0 +1,1 @@
+Run `./build.sh $ARGUMENTS` to build the project using DOSBox + Watcom C++. If no argument is given, default to GAME.CPP. After the build completes, read BUILD.LOG and report the result — show errors if any, or confirm success.

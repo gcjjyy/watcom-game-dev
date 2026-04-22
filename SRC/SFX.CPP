@@ -13,7 +13,8 @@
  * Ring buffer is 2048 bytes (two 1024-byte halves).
  * IRQ (from BLASTER) fires every half-buffer completion (~46 ms).
  * The ISR refills the half that just finished by calling _mix_half(),
- * which sums up to MAX_VOICES active voices into the output buffer.
+ * which accumulates up to MAX_VOICES active voices using a voice-outer /
+ * sample-inner loop into a 32-bit buffer, then clamps and packs to 8-bit.
  *
  * sfx_play() marks a voice as active. Non-blocking — no DSP commands issued.
  * Runs parallel to SOUND.CPP's OPL2 VGM player on INT 8: fully disjoint.
@@ -268,89 +269,64 @@ static void _restore_imr(void) {
     }
 }
 
-/* ---- Software mixer ------------------------------------------------------- */
+/* ---- Software mixer -------------------------------------------------------
+ *
+ * Voice-outer / sample-inner accumulation (the Allegro 4 pattern).
+ *
+ * Each active voice is streamed through a tight single-voice loop that
+ * adds its (centered) samples into a 32-bit accumulator. The end-of-sample
+ * check is hoisted out of the hot loop by pre-computing how many samples
+ * remain for this voice. After all voices have been mixed, a single
+ * clamp+pack pass converts the accumulator to unsigned 8-bit DMA output.
+ *
+ * This is dramatically faster than a sample-outer / voice-inner design
+ * when >=3 voices are active: voice state (src pointer, counter) stays
+ * in registers, there are no per-sample branches or per-sample struct
+ * writes, and input streams are read sequentially (L1-friendly).
+ */
 
-/* Snapshot of an active voice, pulled into a non-volatile local struct
- * so the hot mixing loop can keep pos/end/src in registers. Without this,
- * every sample re-reads the volatile Voice fields from memory. */
-typedef struct {
-    const unsigned char *src;   /* = data + pos at snapshot time */
-    const unsigned char *end;   /* = data + len */
-    int slot;                   /* index back into _voices[] */
-} MixVoice;
+static int _accum[SB_HALF_SIZE];
 
 static void _mix_half(unsigned char *dst) {
-    MixVoice mv[MAX_VOICES];
-    int n = 0;
-    int v, i;
+    int v, i, n_samp, remaining;
+    const unsigned char *src;
 
-    /* Snapshot active voices. ISR context so no _disable() needed --
-     * sfx_play() already wraps its writes in cli/sti. */
+    /* Clear 32-bit accumulator (signed, centered around 0). */
+    memset(_accum, 0, sizeof(_accum));
+
+    /* Mix each active voice. ISR context -- sfx_play() / sfx_stop_all()
+     * already wrap their writes to voice state in cli/sti, so voice
+     * fields are stable for the duration of this handler. */
     for (v = 0; v < MAX_VOICES; v++) {
-        if (_voices[v].active) {
-            mv[n].src  = _voices[v].data + _voices[v].pos;
-            mv[n].end  = _voices[v].data + _voices[v].len;
-            mv[n].slot = v;
-            n++;
-        }
-    }
+        if (!_voices[v].active) continue;
 
-    if (n == 0) {
-        memset(dst, 128, SB_HALF_SIZE);
-        return;
-    }
+        src       = _voices[v].data + _voices[v].pos;
+        remaining = _voices[v].len  - _voices[v].pos;
+        if (remaining <= 0) {
+            _voices[v].active = 0;
+            continue;
+        }
+        n_samp = (remaining < SB_HALF_SIZE) ? remaining : SB_HALF_SIZE;
 
-    /* Hot path specializations: 1 and 2 voices are by far the common cases
-     * (fire-rate on a 200-400 ms SFX). Hand-unrolling lets Watcom keep
-     * src/end in registers and drop the inner loop entirely. */
-    if (n == 1) {
-        const unsigned char *s0 = mv[0].src;
-        const unsigned char *e0 = mv[0].end;
-        for (i = 0; i < SB_HALF_SIZE; i++) {
-            if (s0 < e0) dst[i] = *s0++;
-            else         dst[i] = 128;
+        /* Hot loop: no end check, src/accum base stay in registers. */
+        for (i = 0; i < n_samp; i++) {
+            _accum[i] += (int)src[i] - 128;
         }
-        mv[0].src = s0;
-    } else if (n == 2) {
-        const unsigned char *s0 = mv[0].src, *e0 = mv[0].end;
-        const unsigned char *s1 = mv[1].src, *e1 = mv[1].end;
-        for (i = 0; i < SB_HALF_SIZE; i++) {
-            int sum = 0;
-            if (s0 < e0) sum += (int)(*s0++) - 128;
-            if (s1 < e1) sum += (int)(*s1++) - 128;
-            if (sum < -128) sum = -128;
-            else if (sum > 127) sum = 127;
-            dst[i] = (unsigned char)(sum + 128);
-        }
-        mv[0].src = s0;
-        mv[1].src = s1;
-    } else {
-        for (i = 0; i < SB_HALF_SIZE; i++) {
-            int sum = 0;
-            int j;
-            for (j = 0; j < n; j++) {
-                const unsigned char *s = mv[j].src;
-                if (s < mv[j].end) {
-                    sum += (int)(*s) - 128;
-                    mv[j].src = s + 1;
-                }
-            }
-            if (sum < -128) sum = -128;
-            else if (sum > 127) sum = 127;
-            dst[i] = (unsigned char)(sum + 128);
-        }
-    }
 
-    /* Write back new pos / deactivate finished voices. */
-    for (v = 0; v < n; v++) {
-        int slot = mv[v].slot;
-        int new_pos = (int)(mv[v].src - _voices[slot].data);
-        if (new_pos >= _voices[slot].len) {
-            _voices[slot].pos    = _voices[slot].len;
-            _voices[slot].active = 0;
+        if (n_samp >= remaining) {
+            _voices[v].pos    = _voices[v].len;
+            _voices[v].active = 0;
         } else {
-            _voices[slot].pos = new_pos;
+            _voices[v].pos += n_samp;
         }
+    }
+
+    /* Single clamp+pack pass: 32-bit signed accumulator -> 8-bit unsigned. */
+    for (i = 0; i < SB_HALF_SIZE; i++) {
+        int s = _accum[i];
+        if (s < -128) s = -128;
+        else if (s > 127) s = 127;
+        dst[i] = (unsigned char)(s + 128);
     }
 }
 

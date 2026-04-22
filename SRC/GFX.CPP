@@ -118,9 +118,21 @@ void gfx_rect(int x, int y, int w, int h, unsigned char color) {
 }
 
 void gfx_fill_rect(int x, int y, int w, int h, unsigned char color) {
-    int i;
-    for (i = 0; i < h; i++)
-        gfx_hline(x, x + w - 1, y + i, color);
+    int x2 = x + w - 1, y2 = y + h - 1;
+    unsigned char *p;
+    int rows;
+    if (x  < 0)       x  = 0;
+    if (y  < 0)       y  = 0;
+    if (x2 >= GFX_W)  x2 = GFX_W - 1;
+    if (y2 >= GFX_H)  y2 = GFX_H - 1;
+    if (x > x2 || y > y2) return;
+    p    = &_buf[y * GFX_W + x];
+    w    = x2 - x + 1;
+    rows = y2 - y + 1;
+    while (rows--) {
+        memset(p, color, w);
+        p += GFX_W;
+    }
 }
 
 /* ---- sprites ---- */
